@@ -2,9 +2,14 @@
 
 This repository holds materials for the Spring, 2024,
 offering of ECS 116 at UC Davis.
-The official course title is "Databases for Non-Majors", and the material
-has been tuned for students in the new CS department Data Sciences major.
-In particular, the material is focused around Data Management techniques
-useful for Data Science.
+The official course title is "Databases for Non-Majors", and the material for ththe Spring, 2024, quarter will
+aimed at students in the new Data Sciences major offered by the
+Departments of Statistics, Mathematics and Computer Science.
+In particular, the course covers both "classical" data management
+techniques from the 60's through 80's (including relational databases,
+SQL query language, concurrency)
+and more "modern" data management techniques from the 90's to the present
+(including big data, noSQL,
+replication, distribution, map-reduce, hadoop, spark).
 
 More materials will be added to this GitHub repository soon.
