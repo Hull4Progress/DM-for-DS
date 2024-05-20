@@ -1,0 +1,1 @@
+{"listings_join_reviews_2015": {"__date_in_reviews__id_in_listings__": {"avg": 0.05, "min": 0.0479, "max": 0.0561, "std": 0.0016}, "__date_in_reviews__": {"avg": 0.0513, "min": 0.0474, "max": 0.0595, "std": 0.0028}, "__id_in_listings__": {"avg": 0.144, "min": 0.1201, "max": 0.9111, "std": 0.1097}, "__": {"avg": 0.13, "min": 0.1229, "max": 0.1798, "std": 0.0087}}}
