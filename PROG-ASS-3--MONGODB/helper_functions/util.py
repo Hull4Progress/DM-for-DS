@@ -49,6 +49,92 @@ def time_diff(time1, time2):
 def format_datetime(dt):
     return dt.strftime("%Y-%m-%d-%H:%M:%S")
 
+# Writing dict to a json file into a json file in a subdirectory
+def write_dict_to_dir_json(dict, dir, filename):
+    with open(dir + '/' + filename, 'w') as fp:
+        json.dump(dict, fp)
+
+# also converts NaT to None, because MongoDB does not recognize NaT
+# dt is supposed to be string, such as '2024-02-03'
+def convert_date_str_to_datetime(dt):
+    if dt is None:
+        return None
+    elif pd.isnull(dt):  # tests whether dt is the pandas value NaT ("not a time")
+        # print('\nEntered the NaT case\n')
+        return None
+    elif dt != dt:
+        return None        # could also use math.nan, I think
+    elif dt == '':
+        return None
+    else:
+        year = int(dt[0:4])
+        month = int(dt[5:7])
+        day = int(dt[8:10])
+        # print(year, month, day)
+        temp = datetime(year, month, day)
+        ts = temp.timestamp()
+        new_dt = datetime.fromtimestamp(ts)
+        return new_dt
+
+# print(convert_date_str_to_datetime('2024-05-23'))
+
+# dt has format such as '1/3/24'
+def convert_date_slash_to_datetime(dt):
+    if dt is None:
+        return None
+    elif pd.isnull(dt):  # tests whether dt is the pandas value NaT ("not a time")
+        # print('\nEntered the NaT case\n')
+        return None
+    elif dt != dt:
+        return None        # could also use math.nan, I think
+    elif dt == '':
+        return None
+    else:
+        dt = dt[:-2] + '20' + dt[-2:]
+        new_dt = datetime.strptime(dt, '%m/%d/%Y') 
+        return new_dt
+
+# print(convert_date_slash_to_datetime('1/3/23'))
+
+
+# converting mongodb doc in listings_with_calendar into dict for writing as json file
+def convert_lwc_to_json(doc):
+    doc_new = {}
+    for key in ['_id', 'average_price']:
+        doc_new[key] = doc[key]
+    for key in ['first_available_date', 'last_available_date']:
+        doc_new[key] = doc[key].strftime('%Y-%m-%d')
+    dlist = []
+    for d in doc['dates_list']:
+        d_new = {}
+        d_new['date'] = d['date'].strftime('%Y-%m-%d')
+        for key in ['price', 'minimum_nights', 'maximum_nights']:
+            d_new[key] = d[key]
+        dlist.append(d_new)
+    doc_new['dates_list'] = dlist
+    return doc_new
+
+# converting mongodb doc in listings_with_calendar into dict for writing as json file
+def convert_lwr_to_json(doc):
+    doc_new = {}
+    doc_new['_id'] = str(doc['_id'])
+    doc_new['last_review'] = doc['last_review'].strftime('%Y-%m-%d')
+    for key in doc.keys():
+        if key not in ['_id', 'last_review']:
+            doc_new[key] = doc[key]
+    dlist = []
+    for d in doc['reviews']:
+        d_new = {}
+        d_new['date'] = d['date'].strftime('%Y-%m-%d')
+        for key in d.keys():
+            if key not in ['date']:
+                d_new[key] = d[key]
+        dlist.append(d_new)
+    doc_new['reviews'] = dlist
+    return doc_new
+
+
+
 # ============================================
 #
 #  Queries for loading mongodb with Listings join reviews data
@@ -59,7 +145,16 @@ def build_query_full_join_listings_reviewsm_100():
     q = """select *
 from listings l, reviewsm r
 where l.id = r.listing_id
-  and left(l.id,3) = '100'"""
+  and left(l.id,3) = '100'
+-- this query fetches 406 listings, useful for testing"""
+    return q
+
+def build_query_full_join_listings_reviewsm_10():
+    q = """select *
+from listings l, reviewsm r
+where l.id = r.listing_id
+  and left(l.id,2) = '10'
+-- this query fetches data for 3313 listings, useful for testing"""
     return q
 
 def build_query_full_join_listings_reviewsm():
@@ -74,6 +169,25 @@ from listings l left join reviewsm r
         on l.id = r.listing_id"""
     return q
 
+def build_query_left_join_listings_reviewsm_10():
+    q = """select *
+from listings l left join reviewsm r 
+        on l.id = r.listing_id
+  where left(l.id,2) = '10'
+-- this query fetches data for 3313 listings, useful for testing""" 
+    return q
+
+def build_query_left_join_listings_reviewsm_100():
+    q = """select *
+from listings l left join reviewsm r 
+        on l.id = r.listing_id  
+  where left(l.id,3) = '100'
+-- this query fetches data for 406 listings, useful for testing"""
+    return q
+
+
+
+# this seems to be poorly named
 def build_query_left_join_listings_reviewsm_null_right():
     q = """select *
 from listings l left join reviewsm r 
@@ -81,6 +195,23 @@ from listings l left join reviewsm r
 where     l.id = '47305871'"""
     return q
 
+def build_query_get_all_listing_ids():
+    q = """select distinct id as listing_id
+from listings
+order by id"""
+    return q
+
+def build_query_calendar_for_listing(listing_id):
+    q = """select date, available, price,
+       adjusted_price, minimum_nights, maximum_nights
+from calendar
+where listing_id = '{}'""".format(listing_id)
+    return q
+
+
+
+
+#==================================
 
 
 def build_query_listings_join_reviews(date1, date2):
